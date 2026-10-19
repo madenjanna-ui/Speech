@@ -26,23 +26,34 @@ function lastPrior(no,date,excludeId=''){return entries.filter(e=>e.speechNo===S
 function repeatInfo(no,date,excludeId=''){if(!no||!date)return '';const matches=entries.filter(e=>e.speechNo===String(no)&&e.id!==excludeId).sort((a,b)=>b.date.localeCompare(a.date));if(!matches.length)return 'Этот номер речи ещё не встречался в сохранённой истории.';const prior=matches.filter(e=>e.date<date)[0];const future=matches.filter(e=>e.date>date).slice(-1)[0];let out=[];if(prior)out.push(`Последнее предыдущее назначение: ${ruDate(prior.date)}${prior.speaker?' — '+prior.speaker:''}.`);else out.push('В истории нет более раннего назначения этого номера.');if(future)out.push(`Также назначена на более позднюю дату: ${ruDate(future.date)}.`);out.push(`Всего других записей с этим номером: ${matches.length}.`);return out.join(' ')}
 function renderCalendar(){
  $('currentMonth').textContent=ruMonth(viewMonth).replace(/^./,c=>c.toLocaleUpperCase('ru-RU'));
- const host=$('monthList');host.innerHTML='';const y=viewMonth.getFullYear(),m=viewMonth.getMonth(),list=monthEntries(y,m),today=dateISO(new Date());
- sundays(y,m).forEach(d=>{
-  const ds=dateISO(d),e=list.find(x=>x.date===ds), card=document.createElement('article');card.className='sunday-card';
-  const status=e?statuses[e.status]||statuses['not-contacted']:null;
-  card.innerHTML=`<div class="date-block"><span class="day">${d.getDate()}</span><span class="weekday">ВС</span></div><div class="card-content"><div class="card-top"><h3>${d.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})}${ds===today?'<span class="today-tag">СЕГОДНЯ</span>':''}</h3>${e?`<span class="status ${status.cls}">${status.label}</span>`:''}</div>${e?`<div class="card-details"><div class="detail">${e.speechNo?`Речь: <b>№ ${esc(e.speechNo)}</b>`:`Событие`}</div><div class="detail">${e.songNo?`Песня: <b>${esc(e.songNo)}</b>`:`${e.speechNo?`Песня: <b>—</b>`:`Тип: <b>вне обычного расписания</b>`}`}</div><div class="detail full">Докладчик: <b>${esc(e.speaker||'Не указан')}</b></div>${e.contact?`<div class="detail full">Контакт: ${esc(e.contact)}</div>`:''}${e.comment?`<div class="detail full">Заметка: ${esc(e.comment)}</div>`:''}</div>`:`<p class="no-data">Докладчик ещё не назначен</p>`}<button class="add-date">${e?'Открыть запись':'＋ Добавить приглашение'}</button></div>`;
-  card.querySelector('button').addEventListener('click',()=>openForm(ds,e));host.appendChild(card);
- });
- $('emptyState').classList.toggle('hidden',sundays(y,m).some(d=>list.some(e=>e.date===dateISO(d))));
+ const host=$('monthList');host.innerHTML='';const today=dateISO(new Date());
+ // The current month is first; swiping up naturally reveals each following month.
+ for(let offset=0;offset<24;offset++){
+  const month=new Date(viewMonth.getFullYear(),viewMonth.getMonth()+offset,1);
+  const y=month.getFullYear(),m=month.getMonth(),list=monthEntries(y,m);
+  if(offset>0){const heading=document.createElement('h2');heading.className='scroll-month-heading';heading.textContent=ruMonth(month).replace(/^./,c=>c.toLocaleUpperCase('ru-RU'));host.appendChild(heading)}
+  const group=document.createElement('div');group.className='month-group';group.dataset.month=`${y}-${String(m+1).padStart(2,'0')}`;
+  sundays(y,m).forEach(d=>{
+   const ds=dateISO(d),e=list.find(x=>x.date===ds),card=document.createElement('article');card.className='sunday-card';
+   const status=e?statuses[e.status]||statuses['not-contacted']:null;
+   card.innerHTML=`<div class="date-block"><span class="day">${d.getDate()}</span><span class="weekday">ВС</span></div><div class="card-content"><div class="card-top"><h3>${d.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})}${ds===today?'<span class="today-tag">СЕГОДНЯ</span>':''}</h3>${e?`<span class="status ${status.cls}">${status.label}</span>`:''}</div>${e?`<div class="card-details"><div class="detail">${e.speechNo?`Речь: <b>№ ${esc(e.speechNo)}</b>`:`Событие`}</div><div class="detail">${e.songNo?`Песня: <b>${esc(e.songNo)}</b>`:`${e.speechNo?`Песня: <b>—</b>`:`Тип: <b>вне обычного расписания</b>`}`}</div><div class="detail full">Докладчик: <b>${esc(e.speaker||'Не указан')}</b></div>${e.contact?`<div class="detail full">Контакт: ${esc(e.contact)}</div>`:''}${e.comment?`<div class="detail full">Заметка: ${esc(e.comment)}</div>`:''}</div>`:`<p class="no-data">Докладчик ещё не назначен</p>`}<button class="add-date">${e?'Открыть запись':'＋ Добавить приглашение'}</button></div>`;
+   card.querySelector('button').addEventListener('click',()=>openForm(ds,e));group.appendChild(card);
+  });
+  host.appendChild(group);
+ }
+ $('emptyState').classList.add('hidden');
 }
 function renderHistory(){
- const q=$('historySearch').value.trim(),host=$('historyResults');host.innerHTML='';
- if(!q){host.innerHTML='<div class="history-empty">Введите номер речи, чтобы увидеть даты назначений и докладчиков.</div>';return}
- const matches=sorted().filter(e=>e.speechNo===q).sort((a,b)=>b.date.localeCompare(a.date));
- if(!matches.length){host.innerHTML='<div class="history-empty">Речь № '+esc(q)+' пока не найдена в истории.</div>';return}
- const dates=matches.map(e=>e.date);const last=dates[0];
- host.insertAdjacentHTML('beforeend',`<div class="history-item"><strong>Речь № ${esc(q)} · ${matches.length} ${matches.length===1?'назначение':matches.length<5?'назначения':'назначений'}</strong><p>Последнее назначение: ${ruDate(last)}.</p></div>`);
- matches.forEach(e=>host.insertAdjacentHTML('beforeend',`<div class="history-item"><strong>${ruDate(e.date)}</strong><p>Докладчик: ${esc(e.speaker||'не указан')} · Песня: ${esc(e.songNo||'—')}</p><p>Статус: ${esc(statuses[e.status]?.label||'Не связывались')}${e.comment?' · '+esc(e.comment):''}</p><button class="add-date" data-edit="${esc(e.id)}">Открыть запись</button></div>`));
+ const q=$('historySearch').value.trim().toLowerCase(),host=$('historyResults');host.innerHTML='';
+ const matches=sorted().reverse().filter(e=>!q||String(e.speechNo||'').toLowerCase().includes(q)||String(e.speaker||'').toLowerCase().includes(q)||String(e.songNo||'').toLowerCase().includes(q)||String(e.comment||'').toLowerCase().includes(q));
+ if(!matches.length){host.innerHTML='<div class="history-empty">Записей не найдено.</div>';return}
+ const summary=document.createElement('div');summary.className='history-summary';summary.textContent=`Записей в истории: ${matches.length}`;host.appendChild(summary);
+ matches.forEach(e=>{
+  const item=document.createElement('article');item.className='history-item';
+  const status=statuses[e.status]?.label||'Не связывались';
+  item.innerHTML=`<strong>${ruDate(e.date)} · ${e.speechNo?'Речь № '+esc(e.speechNo):'Событие'}</strong><p>Докладчик: ${esc(e.speaker||'не указан')} · Песня: ${esc(e.songNo||'—')}</p><p>Статус: ${esc(status)}${e.comment?' · '+esc(e.comment):''}</p>${e.contact?`<p>Контакт: ${esc(e.contact)}</p>`:''}<button class="add-date" data-edit="${esc(e.id)}">Открыть запись</button>`;
+  host.appendChild(item);
+ });
  host.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>{const e=entries.find(x=>x.id===b.dataset.edit);if(e)openForm(e.date,e)}));
 }
 function render(){renderCalendar();renderHistory()}
@@ -64,8 +75,6 @@ function closeForm(){$('entryDialog').close()}
 $('closeDialog').onclick=closeForm;$('cancelEntry').onclick=closeForm;
 $('deleteEntry').onclick=()=>{const idv=$('entryId').value;if(idv&&confirm('Удалить это приглашение?')){entries=entries.filter(e=>e.id!==idv);save();closeForm();render();showToast('Запись удалена.')}};
 $('addTop').onclick=()=>{const ds=dateISO(new Date());let d=parseDate(ds);if(d.getDay()!==0){d.setDate(d.getDate()+(7-d.getDay()))}viewMonth=new Date(d.getFullYear(),d.getMonth(),1);render();openForm(dateISO(d))};
-$('prevMonth').onclick=()=>{viewMonth=new Date(viewMonth.getFullYear(),viewMonth.getMonth()-1,1);renderCalendar()};
-$('nextMonth').onclick=()=>{viewMonth=new Date(viewMonth.getFullYear(),viewMonth.getMonth()+1,1);renderCalendar()};
 $('historySearch').addEventListener('input',renderHistory);
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{activeTab=b.dataset.tab;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));$('calendarView').classList.toggle('hidden',activeTab!=='calendar');$('historyView').classList.toggle('hidden',activeTab!=='history');if(activeTab==='history')renderHistory()});
 $('exportBtn').addEventListener('click',async()=>{

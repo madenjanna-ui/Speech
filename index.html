@@ -24,16 +24,16 @@
 <section id="calendarView">
   <div class="month-tools">
     <div><span class="eyebrow">РАСПИСАНИЕ</span><h1 id="currentMonth">Загрузка…</h1></div>
-    <div class="month-arrows"><button id="prevMonth" class="icon-btn" aria-label="Предыдущий месяц">↑</button><button id="nextMonth" class="icon-btn" aria-label="Следующий месяц">↓</button></div>
+    
   </div>
-  <p class="hint">Прокручивайте список вверх или вниз — здесь только воскресенья.</p>
+  <p class="hint">Проведи пальцем вверх, чтобы перейти к следующему месяцу. Здесь только воскресенья.</p>
   <div id="monthList" class="month-list"></div>
   <div id="emptyState" class="empty hidden"><div class="empty-icon">＋</div><h3>Пока нет приглашений</h3><p>Нажмите на воскресенье или «＋», чтобы добавить докладчика.</p></div>
 </section>
 <section id="historyView" class="hidden">
   <div class="month-tools"><div><span class="eyebrow">АРХИВ</span><h1>История речей</h1></div></div>
-  <p class="hint">Поиск покажет все прошлые и будущие назначения выбранного номера речи.</p>
-  <div class="search-wrap"><span>⌕</span><input id="historySearch" inputmode="numeric" placeholder="Введите номер речи, например 42"></div>
+  <p class="hint">Вся история доступна прокруткой. Поиск по номеру речи можно использовать для фильтрации.</p>
+  <div class="search-wrap"><span>⌕</span><input id="historySearch" inputmode="numeric" placeholder="Поиск по номеру речи (необязательно)"></div>
   <div id="historyResults"></div>
 </section>
 </main>
