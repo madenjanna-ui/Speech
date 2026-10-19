@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#172c3a">
+<meta name="description" content="Локальный офлайн-календарь приглашений докладчиков">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="style.css">
+<title>Воскресные речи</title>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><div class="brand-icon">◷</div><div><strong>Воскресные речи</strong><small>Календарь приглашений</small></div></div>
+  <button class="icon-btn" id="addTop" aria-label="Добавить приглашение" title="Добавить приглашение">＋</button>
+</header>
+<nav class="tabs" aria-label="Разделы">
+  <button class="tab active" data-tab="calendar">Календарь</button>
+  <button class="tab" data-tab="history">История речей</button>
+</nav>
+<main>
+<section id="calendarView">
+  <div class="month-tools">
+    <div><span class="eyebrow">РАСПИСАНИЕ</span><h1 id="currentMonth">Загрузка…</h1></div>
+    <div class="month-arrows"><button id="prevMonth" class="icon-btn" aria-label="Предыдущий месяц">↑</button><button id="nextMonth" class="icon-btn" aria-label="Следующий месяц">↓</button></div>
+  </div>
+  <p class="hint">Прокручивайте список вверх или вниз — здесь только воскресенья.</p>
+  <div id="monthList" class="month-list"></div>
+  <div id="emptyState" class="empty hidden"><div class="empty-icon">＋</div><h3>Пока нет приглашений</h3><p>Нажмите на воскресенье или «＋», чтобы добавить докладчика.</p></div>
+</section>
+<section id="historyView" class="hidden">
+  <div class="month-tools"><div><span class="eyebrow">АРХИВ</span><h1>История речей</h1></div></div>
+  <p class="hint">Поиск покажет все прошлые и будущие назначения выбранного номера речи.</p>
+  <div class="search-wrap"><span>⌕</span><input id="historySearch" inputmode="numeric" placeholder="Введите номер речи, например 42"></div>
+  <div id="historyResults"></div>
+</section>
+</main>
+<footer><span class="local-dot"></span> Данные хранятся только на этом устройстве <button id="exportBtn">Экспорт</button><button id="importBtn">Импорт</button><input type="file" id="importFile" accept="application/json" hidden></footer>
+<dialog id="entryDialog">
+<form id="entryForm" method="dialog">
+  <div class="dialog-head"><div><span class="eyebrow" id="formEyebrow">НОВАЯ ЗАПИСЬ</span><h2 id="formTitle">Приглашение</h2></div><button type="button" class="icon-btn" id="closeDialog" aria-label="Закрыть">×</button></div>
+  <input type="hidden" id="entryId">
+  <label>Воскресенье <input id="entryDate" type="date" required></label>
+  <div class="two-col">
+    <label>Номер речи <input id="speechNo" type="number" min="1" step="1" placeholder="Например, 42" required></label>
+    <label>Номер песни <input id="songNo" type="text" inputmode="numeric" placeholder="Например, 18"></label>
+  </div>
+  <label>Имя докладчика <input id="speakerName" type="text" autocomplete="name" placeholder="Имя и фамилия"></label>
+  <label>Контакты <textarea id="contactInfo" rows="2" placeholder="Telegram, @логин, телефон или другая информация"></textarea></label>
+  <label>Статус приглашения
+    <select id="inviteStatus">
+      <option value="not-contacted">Не связывались</option><option value="invited">Приглашён</option><option value="waiting">Ожидает ответа</option><option value="confirmed">Подтвердил</option><option value="declined">Отказался</option>
+    </select>
+  </label>
+  <label>Комментарий <textarea id="entryComment" rows="3" placeholder="Договорённости, когда связаться, заметки…"></textarea></label>
+  <div id="repeatNotice" class="repeat-notice hidden"></div>
+  <div class="form-actions"><button type="button" id="deleteEntry" class="danger-btn hidden">Удалить</button><span class="spacer"></span><button type="button" id="cancelEntry" class="secondary-btn">Отмена</button><button type="submit" class="primary-btn">Сохранить</button></div>
+</form>
+</dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="app.js"></script>
+</body>
+</html>
